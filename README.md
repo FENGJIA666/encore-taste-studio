@@ -2,6 +2,8 @@
 
 **One artist. An entire night of possibility.**
 
+[Open the live studio](https://encore-taste-studio.vercel.app) · [Watch the product film](https://encore-taste-studio.vercel.app/film.html)
+
 ENCORE is a taste-powered event studio for independent live-music venues. Choose a headliner, neighborhood and organizer production budget. ENCORE brings cultural discovery, collaboration concepts, an itemized allocation, a proposed run of show and an exportable launch brief into one working experience.
 
 The signature journey starts with **Khruangbin · Brooklyn · USD 2,400**. Create the night, refine it to **USD 1,600**, refresh a collaboration lead, and export the updated brief. Each action recomputes the plan and preserves a visible decision trail.
@@ -49,7 +51,7 @@ Read [the implementation notes](docs/architecture.md) for the Qloo request contr
 
 ## Deploy on Vercel
 
-Import this repository as an Other framework project with Node.js 22. `vercel.json` serves `public/` and maps `/api/*` to the shared Node handler. No database or runtime package dependency is required. The included film is available at `/film.html`.
+Use an Other framework project with Node.js 22. Import this repository through a connected GitHub integration, or link the project with Vercel CLI and run `vercel deploy --prod`. `vercel.json` serves `public/` and maps `/api/*` to the shared Node handler. No database or runtime package dependency is required. The included film is available at `/film.html`.
 
 Sample studio works without credentials. For Live Qloo, add `QLOO_API_KEY` and the assigned `QLOO_API_URL` as server-side project environment variables, then redeploy. The in-memory 60-second request cache is a best-effort optimization per warm function instance; the planner does not depend on it for correctness.
 
@@ -78,8 +80,10 @@ A drafting checkbox appears when the provider is configured. The model receives 
 
 ## Verification status
 
-The local Sample studio completes the demonstrated desktop and mobile journey: creation, budget refinement, partner refresh, launch-brief views, and Markdown download. **31 automated tests** and JavaScript syntax checks pass. The earlier independent acceptance covered **12 browser scenarios**; the current refinement adds **8 focused desktop/mobile browser checks** for source details, plan changes, matching activations and export. The automated tests include Qloo contracts using synthetic HTTP fixtures and cross-currency comparison regression checks; the browser checks cover the demonstrated USD workflow. Request reuse, concurrent deduplication, expiry and error handling are verified with synthetic Qloo HTTP fixtures.
+**31 automated tests** and JavaScript syntax checks pass. The tests cover exact budget allocation, cultural selection, partner exclusions, source handling, cross-currency comparisons, provider request reuse, and the shared HTTP/platform adapter. Qloo contract tests use synthetic HTTP fixtures.
 
-Provider-contract tests use synthetic HTTP fixtures. Authenticated Qloo and optional language-model execution require configured credentials; each result identifies its actual source. The four deployment tests cover platform-parsed JSON, the sample refinement journey, input/origin boundaries, and local film routes.
+The public production deployment passes **10 desktop/mobile Chromium checks** and **18 anonymous HTTP/API checks**. The demonstrated journey creates a USD 2,400 plan, refines it to USD 1,600, refreshes a partner, and downloads the matching brief. The film plays at both desktop and mobile widths; its media route supports byte-range streaming. Private project files stay outside the published site.
+
+The public demo runs Sample studio with curated cultural pairings and fictional collaboration leads. Authenticated Qloo and optional language-model execution require configured credentials; each result identifies its actual source.
 
 MIT licensed. See [LICENSE](LICENSE).

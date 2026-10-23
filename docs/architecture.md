@@ -34,6 +34,12 @@ The optional OpenAI-compatible drafting adapter receives the selected concept fa
 
 ## Verification boundaries
 
-Automated provider-contract tests use synthetic HTTP fixtures. Local browser acceptance exercises Sample studio. Authenticated Qloo and LLM execution, public deployment acceptance, and submission confirmation each require their own observed result.
+Automated provider-contract tests use synthetic HTTP fixtures. Local and public-production browser acceptance exercise Sample studio. The production checks also verify anonymous API access, film playback, byte-range media requests and private-path 404 responses. Authenticated Qloo and LLM execution and submission confirmation each require their own observed result.
 
 The current verification snapshot is recorded in [README](../README.md#verification-status) with the public API/deployment adapter covered by `tests/deployment.test.js`.
+
+## Hosting
+
+`src/api.js` is shared by the local Node server and the native Vercel function in `api/`. It accepts both streamed local request bodies and JSON bodies parsed by the hosting platform, preserving the 64 KB limit and same-origin check. `public/` is the static output directory. The local server has an explicit file allowlist; the public hosting layer serves only deployment output. Both apply the same content security policy.
+
+The initial production release uses the existing Vercel Hobby plan, with no database or paid add-on. Publication uses Vercel CLI; pushing a Git commit alone does not redeploy this project unless a Git integration is connected. Request caching is best-effort within each warm function instance and has no role in planner correctness.
