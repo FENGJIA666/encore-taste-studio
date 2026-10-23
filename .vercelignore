@@ -1,0 +1,16 @@
+.git/
+.env
+.env.*
+!.env.example
+.DS_Store
+node_modules/
+CHECKPOINT.md
+internal/
+evidence/
+research/
+submission/
+/media/
+output/
+coverage/
+tests/browser-acceptance.mjs
+tests/polish-round2-browser.mjs

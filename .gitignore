@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.DS_Store
+output/
+coverage/
+.vercel/
+CHECKPOINT.md
+internal/
+evidence/
+research/
+submission/
+/media/
+tests/browser-acceptance.mjs
+tests/polish-round2-browser.mjs
