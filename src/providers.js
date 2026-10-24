@@ -67,13 +67,38 @@ export function entitiesFrom(data) {
   if (Array.isArray(result?.entities)) return result.entities;
   throw new AppError('Qloo returned an unfamiliar result format. Keep the current plan and try again.', 502);
 }
-function normalizedEntity(entity, index) {
+const collaborationCategories = new Set([
+  'cafe', 'coffee shop', 'tea house', 'restaurant', 'bar', 'wine bar', 'brewery', 'bakery', 'dessert shop',
+  'record store', 'book store', 'bookstore', 'art gallery', 'arts organization', 'cultural center', 'art center',
+  'museum', 'art museum', 'modern art museum', 'sculpture museum', 'history museum', 'art studio', 'art school',
+  'music store', 'music venue', 'live music venue', 'event venue', 'cinema', 'movie theater', 'neon sign shop',
+  'pottery store', 'pottery classes',
+].map(name => name.replaceAll(' ', '_')));
+function normalizedEntity(entity, index, domain, requestedLocalities = []) {
+  const properties = entity.properties || {};
+  const rawTags = Array.isArray(entity.tags) ? entity.tags : Array.isArray(properties.tags) ? properties.tags : [];
+  const primaryGenre = properties.primary_genre;
+  const categoryTags = rawTags.filter(tag => typeof tag?.id === 'string' && tag.id.startsWith('urn:tag:category:place:') && typeof tag.name === 'string');
+  const categoryEvidence = [primaryGenre, ...categoryTags].find(tag => typeof tag?.id === 'string' && /^urn:tag:(genre|category):place:/.test(tag.id) && collaborationCategories.has(tag.id.split(':').at(-1)) && typeof tag.name === 'string');
+  const category = categoryEvidence?.name || (typeof primaryGenre?.name === 'string' ? primaryGenre.name : categoryTags[0]?.name) || domain;
+  const localities = Array.isArray(properties.localities) ? properties.localities : [];
+  const matchedLocality = requestedLocalities.find(requested => localities.some(place => place.entity_id === requested.entity_id));
+  const geocode = properties.geocode || {};
+  const neighborhood = typeof geocode.name === 'string' ? geocode.name : '';
+  const broaderPlace = matchedLocality?.name || (typeof geocode.city === 'string' ? geocode.city : '');
+  const locality = [...new Set([neighborhood, broaderPlace].filter(Boolean))].join(' · ');
+  const culturalTags = rawTags.filter(tag => typeof tag === 'string' || /^urn:tag:(ambience|interests|genre|category|cuisine|activity_type|decor|specialty_dishes):/.test(tag?.type || ''));
   return {
-    id: entity.entity_id || entity.id, name: entity.name,
-    category: entity.subtype?.split(':').at(-1) || 'place',
-    description: entity.properties?.description || 'Explore this cultural connection as an event collaboration lead.',
-    tags: (entity.tags || entity.properties?.tags || []).slice(0, 4).map(t => typeof t === 'string' ? t : t.name).filter(Boolean),
-    locality: entity.properties?.geocode?.name || entity.properties?.geocode?.city || '',
+    id: entity.entity_id || entity.id, name: entity.name, category,
+    description: properties.description || properties.short_description || 'Explore this cultural connection as an event collaboration lead.',
+    tags: [...new Set(culturalTags.map(tag => typeof tag === 'string' ? tag : tag?.name).filter(name => typeof name === 'string'))].slice(0, 4),
+    locality, localityVerified: Boolean(matchedLocality),
+    localityEvidence: matchedLocality ? { id: matchedLocality.entity_id, name: matchedLocality.name, source: 'Qloo returned locality membership' } : null,
+    categorySource: categoryEvidence ? (categoryEvidence === primaryGenre ? 'Qloo primary genre' : 'Qloo category tag') : null,
+    categoryId: categoryEvidence?.id || null,
+    collaborationEligible: domain !== 'place' || Boolean(categoryEvidence) && properties.is_closed !== true,
+    withinRequestedLocality: domain !== 'place' || !requestedLocalities.length || Boolean(matchedLocality),
+    icon: /cafe|coffee|tea |restaurant|bar|brewery|bakery|dessert/.test(String(category).toLowerCase()) ? 'food' : /record|music/.test(String(category).toLowerCase()) ? 'vinyl' : 'art',
     rank: index + 1, source: 'Qloo live', fictional: false,
     affinity: entity.query?.affinity ?? entity.affinity ?? null,
     explainability: entity.query?.explainability ?? null,
@@ -83,7 +108,7 @@ export async function searchArtists(query, mode, deps = {}) {
   if (mode === 'sample') return artists.filter(a => `${a.name} ${a.subtitle}`.toLowerCase().includes(query.toLowerCase())).map(a => ({ id: a.id, name: a.name, subtitle: a.subtitle }));
   if (mode !== 'live') throw new AppError('Choose Sample studio or Live Qloo.');
   const data = await qlooGet('/search', { query, types: 'urn:entity:artist', take: 6 }, deps);
-  return entitiesFrom(data).filter(e => e.entity_id || e.id).map(e => ({ id: e.entity_id || e.id, name: e.name, subtitle: 'Qloo artist' }));
+  return entitiesFrom(data).filter(e => (e.entity_id || e.id) && (e.types?.includes('urn:entity:artist') || e.subtype === 'urn:entity:artist')).map(e => ({ id: e.entity_id || e.id, name: e.name, subtitle: 'Qloo artist' }));
 }
 export async function getCandidates(input, deps = {}) {
   if (input.mode === 'sample') {
@@ -92,17 +117,20 @@ export async function getCandidates(input, deps = {}) {
     return { artist, places: sampleCandidates(artist, input.city), music: [{ name: artist.music, source: 'Curated example' }], films: [{ name: artist.film, source: 'Curated example' }], receipts: [{ tool: 'Curated sample catalog', status: 'complete', detail: 'Fictional partners and editorial cultural pairings. No live Qloo request.' }], provider: 'sample' };
   }
   const common = { 'signal.interests.entities': input.artistId, 'feature.explainability': true, take: 12 };
-  const requested = [{ type: 'place', more: { 'filter.location.query': input.city, 'filter.exclude.entities': input.rejectedIds.join(',') } }, { type: 'artist', more: { 'filter.exclude.entities': input.artistId } }, { type: 'movie', more: {} }];
+  const requested = [{ type: 'place', more: { 'filter.location.query': input.city, 'filter.location.radius': 0, 'filter.exclude.entities': input.rejectedIds.join(',') } }, { type: 'artist', more: { 'filter.exclude.entities': input.artistId } }, { type: 'movie', more: {} }];
   const results = await Promise.all(requested.map(async ({ type, more }) => {
     const params = { ...common, 'filter.type': `urn:entity:${type}`, ...more };
     const data = await qlooGet('/v2/insights', params, deps);
     const metadata = responseMetadata.get(data);
+    const requestedLocalities = Array.isArray(data.query?.localities?.filter) ? data.query.localities.filter : [];
+    const normalized = entitiesFrom(data).map((entity, index) => normalizedEntity(entity, index, type, requestedLocalities)).filter(entity => entity.id && entity.name);
     const evidenceUse = metadata?.delivery === 'cache' ? 'reused recent Qloo evidence' : metadata?.delivery === 'shared request' ? 'shared Qloo request' : 'fresh Qloo response';
-    return { type, entities: entitiesFrom(data).map(normalizedEntity).filter(e => e.id && e.name), receipt: { tool: 'Qloo Insights', status: 'complete', detail: `${type} · ${entitiesFrom(data).length} results · ${evidenceUse}`, endpoint: '/v2/insights', parameters: params, delivery: metadata?.delivery || 'network', retrievedAt: metadata ? new Date(metadata.fetchedAt).toISOString() : null, explainability: data.query?.explainability ?? null } };
+    return { type, entities: normalized, requestedLocalities, receipt: { tool: 'Qloo Insights', status: 'complete', detail: `${type} · ${entitiesFrom(data).length} results · ${evidenceUse}`, endpoint: '/v2/insights', parameters: params, delivery: metadata?.delivery || 'network', retrievedAt: metadata ? new Date(metadata.fetchedAt).toISOString() : null, explainability: data.query?.explainability ?? null } };
   }));
-  const places = results[0].entities;
+  const places = results[0].entities.filter(place => place.collaborationEligible && place.withinRequestedLocality);
+  const matchedNames = results[0].requestedLocalities.map(locality => locality.name).filter(Boolean);
   const tags = [...new Set(places.flatMap(e => e.tags))].slice(0, 3);
-  return { artist: { id: input.artistId, name: input.artistName, tags: tags.length ? tags : ['Cultural connection', 'Shared discovery', 'Live music'], theme: `${input.artistName}: Beyond the Stage` }, places, music: results[1].entities, films: results[2].entities, receipts: [...results.map(r => r.receipt), { tool: 'Locality review', status: 'complete', detail: `${input.city} requested as a Qloo location filter. ${places.filter(p => p.locality).length} of ${places.length} results include locality metadata; each lead retains its returned locality.` }], provider: 'live' };
+  return { artist: { id: input.artistId, name: input.artistName, tags: tags.length ? tags : ['Cultural connection', 'Shared discovery', 'Live music'], theme: `${input.artistName}: Beyond the Stage` }, places, music: results[1].entities, films: results[2].entities, receipts: [...results.map(r => r.receipt), { tool: 'Locality review', status: 'complete', detail: `${places.length} business and cultural leads match the studio's collaboration categories. ${places.filter(place => place.localityVerified).length} have returned locality membership matching ${matchedNames.join(', ') || input.city}; the location query uses a strict boundary. Each lead retains its actual category and location evidence.` }], provider: 'live' };
 }
 
 export async function draftWithModel(plan, { env = process.env, fetcher = fetch } = {}) {

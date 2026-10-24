@@ -26,9 +26,11 @@ PORT=4180 npm start
 
 ## Explore the studio
 
-**Sample studio** opens the complete planning experience immediately: four artist directions, curated cultural pairings, and fictional collaboration leads. Explore, create, refine, and export a fully labeled event concept.
+**Live Qloo** is the default when the server has a configured Qloo key. Loading the page checks readiness; pressing “Create my night” resolves the headliner and retrieves the actual recommendations.
 
-**Live Qloo** uses a server-side API adapter. Put credentials in `.env.local` (ignored by Git):
+**Sample studio** also opens the complete planning experience immediately: four artist directions, curated cultural pairings, and fictional collaboration leads. Explore, create, refine, and export a fully labeled event concept.
+
+Live discovery uses a server-side API adapter. Put credentials in `.env.local` (ignored by Git):
 
 ```dotenv
 QLOO_API_KEY=your_key_here
@@ -80,10 +82,10 @@ A drafting checkbox appears when the provider is configured. The model receives 
 
 ## Verification status
 
-**31 automated tests** and JavaScript syntax checks pass. The tests cover exact budget allocation, cultural selection, partner exclusions, source handling, cross-currency comparisons, provider request reuse, and the shared HTTP/platform adapter. Qloo contract tests use synthetic HTTP fixtures.
+The initial public release passed **31 automated tests** and JavaScript syntax checks. The authenticated integration adds **5 targeted adapter tests** and passes **12 provider regressions**, including typed artist resolution, strict locality membership, real category taxonomy, cultural cue filtering and nullable response fields. The tests cover exact budget allocation, cultural selection, partner exclusions, source handling, cross-currency comparisons, provider request reuse, and the shared HTTP/platform adapter. Qloo contract tests use synthetic HTTP fixtures.
 
-The public production deployment passes **10 desktop/mobile Chromium checks** and **18 anonymous HTTP/API checks**. The demonstrated journey creates a USD 2,400 plan, refines it to USD 1,600, refreshes a partner, and downloads the matching brief. The film plays at both desktop and mobile widths; its media route supports byte-range streaming. Private project files stay outside the published site.
+The initial Sample production release passed **10 desktop/mobile Chromium checks** and **18 anonymous HTTP/API checks**. The demonstrated journey creates a USD 2,400 plan, refines it to USD 1,600, refreshes a partner, and downloads the matching brief. The film plays at both desktop and mobile widths; its media route supports byte-range streaming. Private project files stay outside the published site.
 
-The public demo runs Sample studio with curated cultural pairings and fictional collaboration leads. Authenticated Qloo and optional language-model execution require configured credentials; each result identifies its actual source.
+Authenticated Qloo search and place/artist/movie Insights have been verified against the official hackathon API. The real Khruangbin/Brooklyn journey selects Land to Sea, NARS Foundation and Pioneer Works, then recomputes the budget and refreshed shortlist with matching activations. Every selected lead retains its Qloo category ID, original query rank and verified Brooklyn locality membership. Sample studio remains available with its own explicit source label. Optional language-model drafting retains its separate configuration and source label.
 
 MIT licensed. See [LICENSE](LICENSE).

@@ -13,6 +13,8 @@ const files = {
   '/film.css': ['film.css', 'text/css; charset=utf-8'],
   '/media/encore-product-film-v2.mp4': ['media/encore-product-film-v2.mp4', 'video/mp4'],
   '/media/encore-poster-v2.jpg': ['media/encore-poster-v2.jpg', 'image/jpeg'],
+  '/media/encore-product-film-v3.mp4': ['media/encore-product-film-v3.mp4', 'video/mp4'],
+  '/media/encore-poster-v3.jpg': ['media/encore-poster-v3.jpg', 'image/jpeg'],
 };
 
 export function createServer(deps = {}) {

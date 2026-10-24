@@ -8,7 +8,7 @@ const live = { ...sample, mode: 'live', artistId: '12345678-1234-1234-1234-12345
 const env = { QLOO_API_KEY: 'round2-fixture-key', QLOO_API_URL: 'https://hackathon.api.qloo.com' };
 function fixtureResponse(url) {
   const type = url.searchParams.get('filter.type') || 'artist';
-  return new Response(JSON.stringify({ success: true, results: { entities: [1, 2, 3, 4].map(n => ({ entity_id: `${type}-${n}`, name: `${type} ${n}`, subtype: type, properties: { geocode: { city: 'Brooklyn' } } })) } }));
+  return new Response(JSON.stringify({ success: true, results: { entities: [1, 2, 3, 4].map(n => ({ entity_id: `${type}-${n}`, name: `${type} ${n}`, subtype: type, properties: { geocode: { city: 'Brooklyn' }, primary_genre: { id: 'urn:tag:genre:place:cafe', name: 'Cafe' } } })) } }));
 }
 
 test('round2: budget refinement reuses all Qloo evidence; refresh retrieves only the changed place query', async () => {

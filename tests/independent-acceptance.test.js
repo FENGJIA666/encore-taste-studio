@@ -82,6 +82,7 @@ test('independent: live fixture ranking affects chosen partners and requests ret
       const type = url.searchParams.get('filter.type').split(':').at(-1);
       return Response.json({ results: { entities: [0, 1, 2].map(index => ({
         entity_id: `${type}-fixture-${index}`, name: `${type} fixture ${index}`, subtype: `urn:entity:${type}`,
+        properties: { primary_genre: { id: 'urn:tag:genre:place:cafe', name: 'Cafe' } },
         tags: [{ name: 'Independent acceptance fixture' }], query: { affinity: 0.8 - index / 10 },
       })) } });
     },
@@ -98,7 +99,7 @@ test('independent: live fixture ranking affects chosen partners and requests ret
 test('independent: empty live cultural domains identify editorial fallbacks accurately', async () => {
   const plan = await createPlan(live, {
     env: { QLOO_API_KEY: fakeSecret },
-    fetcher: async url => Response.json({ results: { entities: url.searchParams.get('filter.type') === 'urn:entity:place' ? [{ entity_id: 'fixture-place', name: 'Fixture place' }] : [] } }),
+    fetcher: async url => Response.json({ results: { entities: url.searchParams.get('filter.type') === 'urn:entity:place' ? [{ entity_id: 'fixture-place', name: 'Fixture place', properties: { primary_genre: { id: 'urn:tag:genre:place:cafe', name: 'Cafe' } } }] : [] } }),
   });
   assert.equal(plan.connections.find(item => item.domain === 'Sound').source, 'Organizer headliner');
   assert.equal(plan.connections.find(item => item.domain === 'Cinema').source, 'Editorial direction');
