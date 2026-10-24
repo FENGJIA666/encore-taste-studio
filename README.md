@@ -86,6 +86,10 @@ The initial public release passed **31 automated tests** and JavaScript syntax c
 
 The initial Sample production release passed **10 desktop/mobile Chromium checks** and **18 anonymous HTTP/API checks**. The demonstrated journey creates a USD 2,400 plan, refines it to USD 1,600, refreshes a partner, and downloads the matching brief. The film plays at both desktop and mobile widths; its media route supports byte-range streaming. Private project files stay outside the published site.
 
-Authenticated Qloo search and place/artist/movie Insights have been verified against the official hackathon API. The real Khruangbin/Brooklyn journey selects Land to Sea, NARS Foundation and Pioneer Works, then recomputes the budget and refreshed shortlist with matching activations. Every selected lead retains its Qloo category ID, original query rank and verified Brooklyn locality membership. Sample studio remains available with its own explicit source label. Optional language-model drafting retains its separate configuration and source label.
+Authenticated Qloo search and place/artist/movie Insights have been verified against the official hackathon API. The public Live journey passed **14 desktop/mobile assertions**: Khruangbin/Brooklyn selects Land to Sea, NARS Foundation and Pioneer Works, then recomputes the USD 1,600 allocation and refreshed shortlist with matching activations and an actual Markdown download. Every selected lead retains its Qloo category ID, original query rank and verified Brooklyn locality membership.
+
+Actual request receipts also verify budget-only reuse and concurrent request sharing. Two simultaneous local HTTP plans used three upstream Insights requests, with matching retrieval timestamps across the network and shared receipts. A controlled comparison across three recorded candidate pools shows how Qloo ordering contributes to selection while the planner holds its category, budget and exclusion rules constant.
+
+Sample studio remains available with its own explicit source label. Optional language-model drafting retains its separate configuration and source label.
 
 MIT licensed. See [LICENSE](LICENSE).
